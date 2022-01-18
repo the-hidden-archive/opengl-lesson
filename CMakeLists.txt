@@ -11,6 +11,8 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(Dependencies/glfw)
 add_subdirectory(Dependencies/glad)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp Lib/Shader.cpp Lib/Shader.h)
 
 target_link_libraries(${PROJECT_NAME} glfw glad)
+
+file(COPY Assets DESTINATION .)
