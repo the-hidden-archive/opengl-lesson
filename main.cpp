@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
+#include "Lib/Shader.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -47,7 +49,9 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
 
     // setup window
     GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
@@ -90,60 +94,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // shaders
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-    // setup source and compile shader
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    glCompileShader(vertexShader);
-
-    // check for errors in compiling
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        std::cerr << "Error: Fatal in Vertex Shader compiling" << std::endl << infoLog << std::endl;
-    }
-
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    // setup source and compile shader
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    glCompileShader(fragmentShader);
-
-    // check for errors in compiling
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-    if(!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        std::cerr << "Error: Fatal in Fragment Shader compiling" << std::endl << infoLog << std::endl;
-    }
-
-    // shader program (linked fragment and vertex shaders)
-    unsigned int shaderProgram = glCreateProgram();
-
-    // attach and link shaders to program
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    // check for errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-        std::cerr << "Error: Fatal in Shader Program linking" << std::endl << infoLog << std::endl;
-    }
-
-    glUseProgram(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    Shader sampleShader("Assets/Shaders/SampleTriangle/triangle.vert", "Assets/Shaders/SampleTriangle/triangle.frag");
 
     // setup shader program attribs
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)nullptr);
@@ -159,7 +110,8 @@ int main()
         // here is rendering
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        sampleShader.use();
+        sampleShader.setFloat("uGreenColor", (float)sin(glfwGetTime())/2+0.5f);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
